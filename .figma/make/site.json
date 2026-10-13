@@ -1,0 +1,10 @@
+{
+  "description": "Centralized web platform for Gunungkidul Health Office to catalog, preview, and manage health-related documents with public access and admin controls.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'Plus Jakarta Sans', system ui, sans-serif;
+  --color-brand-50: #f0f9f4;
+  --color-brand-100: #d9f0e5;
+  --color-brand-200: #b3e2cd;
+  --color-brand-300: #80ccaf;
+  --color-brand-400: #4aad8c;
+  --color-brand-500: #2b9272;
+  --color-brand-600: #1e755b;
+  --color-brand-700: #185e48;
+  --color-brand-800: #154c3b;
+  --color-brand-900: #113e30;
+  --color-brand-950: #0a261d;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: #0f2318;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #b3e2cd;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b9272;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
