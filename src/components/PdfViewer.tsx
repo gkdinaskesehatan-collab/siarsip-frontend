@@ -31,6 +31,7 @@ interface Match {
 
 interface PdfViewerProps {
   src: string; // alamat file PDF (endpoint backend)
+  totalBytes?: number;
   className?: string;
   searchOpen: boolean; // bar pencarian tampil atau tidak (dikontrol tombol "Cari")
   onSearchOpen: () => void;
@@ -178,6 +179,7 @@ function PageView({
 /* ------------------------------------------------------------------ */
 export default function PdfViewer({
   src,
+  totalBytes,
   className = 'h-[80vh]',
   searchOpen,
   onSearchOpen,
@@ -196,6 +198,8 @@ export default function PdfViewer({
   const [baseSize, setBaseSize] = useState({ w: 595, h: 842 });
   const [containerW, setContainerW] = useState(0);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [loadedBytes, setLoadedBytes] = useState(0);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
 
   const [query, setQuery] = useState('');
@@ -208,8 +212,11 @@ export default function PdfViewer({
   useEffect(() => {
     let cancelled = false;
     let loadingTask: ReturnType<typeof pdfjsLib.getDocument> | null = null;
+    const controller = new AbortController();
 
     setStatus('loading');
+    setLoadedBytes(0);
+    setLoadProgress(0);
     setPdf(null);
     setMatches([]);
     setSearched(false);
@@ -217,11 +224,43 @@ export default function PdfViewer({
 
     (async () => {
       try {
-        const res = await fetch(src, { cache: 'no-store' }); // jangan pakai cache browser
+        const res = await fetch(src, { cache: 'no-store', signal: controller.signal }); // jangan pakai cache browser
         if (!res.ok) throw new Error(`Server menjawab ${res.status}`);
-        const buf = await res.arrayBuffer();
+        if (!res.body) throw new Error('Browser tidak mendukung pembacaan dokumen bertahap.');
+
+        const contentLength = Number(res.headers.get('Content-Length'));
+        const expectedBytes = Number.isFinite(contentLength) && contentLength > 0
+          ? contentLength
+          : totalBytes;
+        const reader = res.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let receivedBytes = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (cancelled) {
+            await reader.cancel();
+            return;
+          }
+          chunks.push(value);
+          receivedBytes += value.byteLength;
+          setLoadedBytes(receivedBytes);
+          if (expectedBytes) {
+            setLoadProgress(Math.min(99, Math.floor((receivedBytes / expectedBytes) * 100)));
+          }
+        }
+
         if (cancelled) return;
-        loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buf) });
+        const bytes = new Uint8Array(receivedBytes);
+        let offset = 0;
+        for (const chunk of chunks) {
+          bytes.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        setLoadedBytes(receivedBytes);
+        setLoadProgress(100);
+        loadingTask = pdfjsLib.getDocument({ data: bytes });
         const doc = await loadingTask.promise;
         if (cancelled) return;
         const first = await doc.getPage(1);
@@ -232,6 +271,7 @@ export default function PdfViewer({
         setStatus('ready');
       } catch (err) {
         if (cancelled) return;
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         setErrorMsg(err instanceof Error ? err.message : 'Gagal memuat berkas.');
         setStatus('error');
       }
@@ -239,9 +279,10 @@ export default function PdfViewer({
 
     return () => {
       cancelled = true;
+      controller.abort();
       loadingTask?.destroy();
     };
-  }, [src]);
+  }, [src, totalBytes]);
 
   // Lebar area baca menentukan skala halaman
   useEffect(() => {
@@ -485,8 +526,32 @@ export default function PdfViewer({
 
       {/* Area baca */}
       {status === 'loading' && (
-        <div className={`flex items-center justify-center text-sm text-slate-500 ${className}`}>
-          Memuat dokumen…
+        <div className={`flex flex-col items-center justify-center gap-3 px-6 text-sm text-slate-500 ${className}`}>
+          <div className="w-full max-w-sm space-y-2">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span>{loadProgress === 100 ? 'Memproses dokumen untuk ditampilkan…' : 'Memuat dokumen…'}</span>
+              <span className="font-semibold text-brand-700">{loadProgress}%</span>
+            </div>
+            <div
+              className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+              role="progressbar"
+              aria-label="Progres pemuatan dokumen"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={loadProgress}
+            >
+              <div
+                className="h-full rounded-full bg-brand-500 transition-[width] duration-200"
+                style={{ width: `${loadProgress}%` }}
+              />
+            </div>
+            {loadedBytes > 0 && (
+              <p className="text-center text-[11px] text-slate-400">
+                {(loadedBytes / (1024 * 1024)).toFixed(2)} MB diterima
+                {totalBytes ? ` dari ${(totalBytes / (1024 * 1024)).toFixed(2)} MB` : ''}
+              </p>
+            )}
+          </div>
         </div>
       )}
       {status === 'error' && (

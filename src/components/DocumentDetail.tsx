@@ -13,8 +13,10 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
   const [searchOpen, setSearchOpen] = useState(false);
 
   // Versi berkas: berubah setiap data/berkas diperbarui, sehingga preview ikut dimuat ulang
-  const fileVersion = doc.updatedAt ?? doc.fileSize;
+  const fileVersion = doc.fileSize;
   const previewSrc = `${documentFileUrl(doc.id)}?v=${encodeURIComponent(fileVersion)}`;
+  const fileSizeMb = Number.parseFloat(doc.fileSize);
+  const totalBytes = Number.isFinite(fileSizeMb) ? fileSizeMb * 1024 * 1024 : undefined;
 
   const dateFormatted = new Date(doc.dateAdded).toLocaleDateString('id-ID', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -140,6 +142,7 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
               <PdfViewer
                 key={`${doc.id}-${fileVersion}`}
                 src={previewSrc}
+                totalBytes={totalBytes}
                 className="h-[75vh] min-h-[500px]"
                 searchOpen={searchOpen}
                 onSearchOpen={() => setSearchOpen(true)}

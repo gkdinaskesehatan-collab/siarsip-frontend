@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import type { Document } from '../types';
-import { DOCUMENT_CATEGORIES } from '../types';
 import CategoryBadge from './CategoryBadge';
-import { ALL_YEARS } from '../data/mockData';
+import Combobox from './Combobox';
 
 interface PublicViewProps {
   documents: Document[];
+  categories: string[]; // semua kategori yang ada (otomatis bertambah)
+  years: number[]; // tahun dari dokumen yang ada (otomatis bertambah)
   onSelectDocument: (doc: Document) => void;
 }
 
@@ -46,10 +47,15 @@ function DocumentCard({ doc, onSelect }: { doc: Document; onSelect: () => void }
   );
 }
 
-export default function PublicView({ documents, onSelectDocument }: PublicViewProps) {
+const FILTER_INPUT =
+  'w-full px-3 py-2 pr-8 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white text-slate-700';
+
+export default function PublicView({ documents, categories, years, onSelectDocument }: PublicViewProps) {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+
+  const yearOptions = useMemo(() => years.map(String), [years]);
 
   const filtered = useMemo(() => {
     return documents.filter((doc) => {
@@ -74,10 +80,10 @@ export default function PublicView({ documents, onSelectDocument }: PublicViewPr
             <div className="w-1 h-10 bg-white/40 rounded-full flex-shrink-0 mt-1"></div>
             <div>
               <h1 className="font-display font-700 text-2xl sm:text-3xl tracking-tight">
-                Sistem Informasi Arsip &amp; Repositori Kesehatan Publik
+                Sistem Informasi Dokumen &amp; Arsip Kesehatan Internal
               </h1>
               <p className="text-green-100 text-sm sm:text-base mt-1 max-w-xl">
-                Portal resmi dokumentasi dan arsip resmi Dinas Kesehatan Kabupaten Gunungkidul.
+                Portal resmi dokumentasi dan arsip Dinas Kesehatan Kabupaten Gunungkidul.
                 Temukan dan unduh dokumen publik sektor kesehatan dengan mudah.
               </p>
             </div>
@@ -102,29 +108,24 @@ export default function PublicView({ documents, onSelectDocument }: PublicViewPr
                 className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
               />
             </div>
-            {/* Category filter */}
-            <select
+            {/* Category filter: bisa diketik atau dipilih dari daftar */}
+            <Combobox
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="sm:w-52 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white text-slate-700"
-            >
-              <option value="">Semua Kategori</option>
-              {DOCUMENT_CATEGORIES.filter(c => c !== 'Lainnya').map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-              <option value="Lainnya">Lainnya</option>
-            </select>
-            {/* Year filter */}
-            <select
+              onChange={setCategoryFilter}
+              options={categories}
+              allLabel="Semua Kategori"
+              className="sm:w-56"
+              inputClassName={FILTER_INPUT}
+            />
+            {/* Year filter: bisa diketik atau dipilih dari daftar */}
+            <Combobox
               value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="sm:w-32 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white text-slate-700"
-            >
-              <option value="">Semua Tahun</option>
-              {ALL_YEARS.map((yr) => (
-                <option key={yr} value={yr}>{yr}</option>
-              ))}
-            </select>
+              onChange={setYearFilter}
+              options={yearOptions}
+              allLabel="Semua Tahun"
+              className="sm:w-36"
+              inputClassName={FILTER_INPUT}
+            />
             {hasActiveFilter && (
               <button
                 onClick={() => { setSearch(''); setCategoryFilter(''); setYearFilter(''); }}
@@ -167,13 +168,11 @@ export default function PublicView({ documents, onSelectDocument }: PublicViewPr
       {/* Footer */}
       <footer className="border-t border-green-100 bg-brand-950 text-green-200 py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs">
-          <p className="font-semibold text-green-100">SI-ARSIP — Dinas Kesehatan Kabupaten Gunungkidul</p>
-          <p className="mt-1 text-green-400">Sistem Informasi Arsip &amp; Repositori Kesehatan Publik</p>
-    
-        {/* Baris Copyright */}
-        <p className="mt-3 text-[11px] text-green-500">
-          &copy; {new Date().getFullYear()} Dinas Kesehatan Kabupaten Gunungkidul
-        </p>
+          <p className="font-semibold text-green-100">SI-DHAKSI — Dinas Kesehatan Kabupaten Gunungkidul</p>
+          <p className="mt-1 text-green-400">Sistem Informasi Dokumen &amp; Arsip Kesehatan Internal</p>
+          <p className="mt-3 text-[11px] text-green-500">
+            &copy; {new Date().getFullYear()} Dinas Kesehatan Kabupaten Gunungkidul
+          </p>
         </div>
       </footer>
     </div>
