@@ -9,6 +9,8 @@ const API_URL =
   import.meta.env.VITE_API_URL as string | undefined ??
   "http://127.0.0.1:8000/api"
 
+export const WAKE_URL = `${API_URL}/categories`
+
 const API_ORIGIN = new URL(API_URL, window.location.origin).origin
 
 const TOKEN_KEY = "siarsip_token"

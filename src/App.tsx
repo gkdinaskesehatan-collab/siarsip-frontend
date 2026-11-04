@@ -13,6 +13,7 @@ import {
   AUTH_EXPIRED_EVENT,
   mergeCategories,
   type DocumentFormData,
+  WAKE_URL,
 } from "./api"
 import Header from "./components/Header"
 import PublicView from "./components/PublicView"
@@ -183,10 +184,25 @@ export default function App() {
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
         <p>{waking ? "Server sedang disiapkan…" : "Memuat dokumen…"}</p>
         {waking && (
-          <p className="max-w-lg text-center text-sm">
-            Server tertidur saat lama tidak dipakai. Mohon tunggu sekitar 1–2
-            menit, halaman akan terbuka otomatis.
-          </p>
+          <>
+            <iframe src={WAKE_URL} title="wake" className="hidden" />
+            <p className="max-w-lg text-center text-sm">
+              Server tertidur saat lama tidak dipakai. Mohon tunggu sekitar 1–2
+              menit, halaman akan terbuka otomatis.
+            </p>
+            <a
+              href={WAKE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-brand-600 px-4 py-2 text-white"
+            >
+              Bangunkan server
+            </a>
+            <p className="max-w-lg text-center text-xs">
+              Jika halaman tidak terbuka sendiri, klik tombol ini, tunggu 1–2
+              menit, lalu kembali ke tab ini.
+            </p>
+          </>
         )}
       </div>
     )
