@@ -26,17 +26,31 @@ export default function App() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
+  const [waking, setWaking] = useState(false)
   const [view, setView] = useState<View>("public")
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [isAdmin, setIsAdmin] = useState(() => getToken() !== null)
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(null)
   const [units, setUnits] = useState<OrganizationalUnit[]>([])
 
+  const loadDocuments = async () => {
+    setLoading(true)
+    setLoadError("")
+    setWaking(false)
+    try {
+      const loadedDocuments = await fetchDocuments(() => setWaking(true))
+      setDocuments(loadedDocuments)
+    } catch (e) {
+      setLoadError(
+        e instanceof Error ? e.message : "Terjadi kesalahan saat memuat dokumen.",
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    fetchDocuments()
-      .then(setDocuments)
-      .catch((e: Error) => setLoadError(e.message))
-      .finally(() => setLoading(false))
+    void loadDocuments()
     if (getToken()) {
       fetchCurrentUser()
         .then((user) => {
@@ -76,9 +90,7 @@ export default function App() {
     setCurrentUser(user)
     setIsAdmin(true)
     setView("admin")
-    fetchDocuments()
-      .then(setDocuments)
-      .catch((e: Error) => setLoadError(e.message))
+    void loadDocuments()
     if (user.role === "super_admin") {
       fetchOrganizationalUnits()
         .then(setUnits)
@@ -167,8 +179,15 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500">
-        Memuat dokumen…
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-4 text-slate-500">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+        <p>{waking ? "Server sedang disiapkan…" : "Memuat dokumen…"}</p>
+        {waking && (
+          <p className="max-w-lg text-center text-sm">
+            Server tertidur saat lama tidak dipakai. Mohon tunggu sekitar 1–2
+            menit, halaman akan terbuka otomatis.
+          </p>
+        )}
       </div>
     )
   }
@@ -192,6 +211,13 @@ export default function App() {
       {loadError && (
         <div className="bg-red-50 text-red-700 text-sm px-4 py-2 text-center">
           Gagal memuat dokumen: {loadError}
+          <button
+            type="button"
+            className="ml-3 font-semibold underline"
+            onClick={() => void loadDocuments()}
+          >
+            Coba lagi
+          </button>
         </div>
       )}
 

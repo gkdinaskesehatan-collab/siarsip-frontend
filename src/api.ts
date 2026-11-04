@@ -63,10 +63,70 @@ interface ApiDocument {
   organizational_unit?: OrganizationalUnit | null
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  onWaking?: () => void,
+): Promise<Response> {
+  const isGet = (init.method ?? "GET").toUpperCase() === "GET"
+  if (!isGet) return fetch(url, init)
+
+  const deadline = Date.now() + 150_000
+  const exhaustedMessage =
+    "Server belum dapat dihubungi setelah 2 menit 30 detik. Silakan coba lagi."
+
+  while (true) {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) throw new Error(exhaustedMessage)
+
+    const controller = new AbortController()
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      Math.min(20_000, remaining),
+    )
+    let response: Response
+
+    try {
+      response = await fetch(url, { ...init, signal: controller.signal })
+    } catch {
+      window.clearTimeout(timeout)
+      const retryDelay = deadline - Date.now()
+      if (retryDelay <= 0) throw new Error(exhaustedMessage)
+      onWaking?.()
+      await new Promise((resolve) =>
+        window.setTimeout(resolve, Math.min(4_000, retryDelay)),
+      )
+      continue
+    } finally {
+      window.clearTimeout(timeout)
+    }
+
+    if (![502, 503, 504].includes(response.status)) return response
+
+    const retryDelay = deadline - Date.now()
+    if (retryDelay <= 0) {
+      throw new Error(
+        "Server belum siap setelah 2 menit 30 detik. Silakan coba lagi.",
+      )
+    }
+    onWaking?.()
+    await new Promise((resolve) =>
+      window.setTimeout(resolve, Math.min(4_000, retryDelay)),
+    )
+  }
+}
+
+async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  onWaking?: () => void,
+): Promise<T> {
   const token = getToken()
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const fetchForRequest = (url: string, options: RequestInit) =>
+    fetchWithRetry(url, options, onWaking)
+
+  const res = await fetchForRequest(`${API_URL}${path}`, {
     ...init,
 
     headers: {
@@ -455,10 +515,10 @@ function buildForm(data: DocumentFormData): FormData {
   return form
 }
 
-export async function fetchDocuments(): Promise<Document[]> {
-  const rows = await request<ApiDocument[]>("/documents", {
-    signal: AbortSignal.timeout(90000),
-  })
+export async function fetchDocuments(
+  onWaking?: () => void,
+): Promise<Document[]> {
+  const rows = await request<ApiDocument[]>("/documents", {}, onWaking)
 
   return rows.map(toDocument)
 }
