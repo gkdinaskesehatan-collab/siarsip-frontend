@@ -27,7 +27,7 @@ export default function Header({
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-green-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-[72px]">
+        <div className="flex items-center justify-between min-h-16 sm:min-h-[72px]">
           {/* Logo + App Name */}
           <button
             onClick={() => onNavigate(isAdmin ? "admin" : "public")}
@@ -49,7 +49,7 @@ export default function Header({
           </button>
 
           {/* Right side */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden lg:flex items-center gap-2 sm:gap-3">
             {isAdmin ? (
               <>
                 <button
@@ -152,7 +152,112 @@ export default function Header({
               </>
             )}
           </div>
+          <div className="lg:hidden">
+            {isAdmin ? (
+              <button
+                onClick={onLogout}
+                className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-200"
+              >
+                Keluar
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate("login")}
+                className="flex items-center gap-1.5 text-sm font-semibold bg-[#185e48] text-white px-3 py-2 rounded-lg hover:bg-[#154c3b] transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                  />
+                </svg>
+                Masuk
+              </button>
+            )}
+          </div>
         </div>
+        <nav className="lg:hidden -mx-4 px-4 pb-2 flex items-center gap-2 overflow-x-auto border-t border-green-50">
+          {isAdmin ? (
+            <>
+              <button
+                onClick={() => onNavigate("admin")}
+                className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                  currentView === "admin" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => onNavigate("public")}
+                className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                  currentView === "public" || currentView === "detail" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                }`}
+              >
+                Katalog
+              </button>
+              <button
+                onClick={() => onNavigate("internal")}
+                className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                  currentView === "internal" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                }`}
+              >
+                Ruang Internal
+              </button>
+              <button
+                onClick={() => onNavigate("verify")}
+                className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                  currentView === "verify" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                }`}
+              >
+                Verifikasi Dokumen
+              </button>
+              <button
+                onClick={() => onNavigate("account")}
+                className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                  currentView === "account" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                }`}
+              >
+                Akun Saya
+              </button>
+              {(user?.role === "administrator" || user?.role === "super_admin") && (
+                <button
+                  onClick={() => onNavigate("users")}
+                  className={`shrink-0 text-xs font-medium px-3 py-2 rounded-md ${
+                    currentView === "users" ? "bg-brand-100 text-brand-800" : "text-brand-700"
+                  }`}
+                >
+                  Pengguna
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => onNavigate("verify")}
+                className={`shrink-0 flex-1 text-center text-xs font-semibold px-3 py-2 rounded-md ${
+                  currentView === "verify" ? "bg-brand-100 text-brand-800" : "text-brand-700 hover:bg-brand-50"
+                }`}
+              >
+                Verifikasi Dokumen
+              </button>
+              <button
+                onClick={() => onNavigate("public")}
+                className={`shrink-0 flex-1 text-center text-xs font-semibold px-3 py-2 rounded-md ${
+                  currentView === "public" || currentView === "detail" ? "bg-brand-100 text-brand-800" : "text-brand-700 hover:bg-brand-50"
+                }`}
+              >
+                Katalog
+              </button>
+            </>
+          )}
+        </nav>
       </div>
     </header>
   )
