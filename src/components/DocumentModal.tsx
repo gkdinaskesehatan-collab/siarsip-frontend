@@ -275,6 +275,7 @@ export default function DocumentModal({
           publicAnonymizationConfirmed,
           fileUrl: existingDoc?.fileUrl ?? "",
           fileSize: existingDoc?.fileSize ?? "",
+          version: existingDoc?.version ?? 1,
           organizationalUnitId:
             user?.role === "pengelola_arsip" ||
             user?.role === "admin_bidang"

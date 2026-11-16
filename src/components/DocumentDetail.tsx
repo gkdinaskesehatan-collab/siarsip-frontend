@@ -1,17 +1,48 @@
-import { useState } from 'react';
-import type { Document } from '../types';
+import { useEffect, useRef, useState } from 'react';
+import type { Document, DocumentVersion } from '../types';
 import CategoryBadge from './CategoryBadge';
 import PdfViewer from './PdfViewer';
-import { downloadDocumentFile, documentFileUrl } from '../api';
+import { downloadDocumentFile, documentFileUrl, fetchDocumentVersions } from '../api';
 
 interface DocumentDetailProps {
   document: Document;
+  canUploadVersion: boolean;
+  onUploadVersion: (
+    id: string,
+    file: File,
+    onProgress?: (progress: number) => void,
+  ) => Promise<void>;
   onBack: () => void;
 }
 
-export default function DocumentDetail({ document: doc, onBack }: DocumentDetailProps) {
+export default function DocumentDetail({
+  document: doc,
+  canUploadVersion,
+  onUploadVersion,
+  onBack,
+}: DocumentDetailProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [downloadError, setDownloadError] = useState('');
+  const [versions, setVersions] = useState<DocumentVersion[]>([]);
+  const [versionError, setVersionError] = useState('');
+  const [versionFile, setVersionFile] = useState<File | null>(null);
+  const [uploadingVersion, setUploadingVersion] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const versionInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchDocumentVersions(doc.id)
+      .then((items) => {
+        if (active) setVersions(items);
+      })
+      .catch((error: unknown) => {
+        if (active) setVersionError(error instanceof Error ? error.message : 'Riwayat versi gagal dimuat.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [doc.id, doc.version]);
 
   // Versi berkas: berubah setiap data/berkas diperbarui, sehingga preview ikut dimuat ulang
   const fileVersion = doc.fileHash ?? doc.fileSize;
@@ -26,15 +57,32 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
   const handleDownload = async () => {
     setDownloadError('');
     try {
-      const blob = await downloadDocumentFile(doc.id);
+      const { blob, filename } = await downloadDocumentFile(doc.id);
       const url = URL.createObjectURL(blob);
       const link = window.document.createElement('a');
       link.href = url;
-      link.download = `${doc.title}.pdf`;
+      link.download = filename ?? `${doc.category}_${doc.title}_${doc.year}_v${doc.version ?? 1}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
       setDownloadError(error instanceof Error ? error.message : 'Unduhan gagal.');
+    }
+  };
+
+  const handleUploadVersion = async () => {
+    if (!versionFile || uploadingVersion) return;
+    setVersionError('');
+    setUploadingVersion(true);
+    setUploadProgress(0);
+    try {
+      await onUploadVersion(doc.id, versionFile, setUploadProgress);
+      setVersionFile(null);
+      if (versionInput.current) versionInput.current.value = '';
+      setVersions(await fetchDocumentVersions(doc.id));
+    } catch (error) {
+      setVersionError(error instanceof Error ? error.message : 'Unggah versi baru gagal.');
+    } finally {
+      setUploadingVersion(false);
     }
   };
 
@@ -120,6 +168,41 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
                 Unduh Berkas ({doc.fileSize})
               </button>
               {downloadError && <p role="alert" className="mt-2 text-xs text-red-600">{downloadError}</p>}
+
+              <div className="mt-5 border-t border-slate-100 pt-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Versi dokumen · v{doc.version ?? 1}
+                </h3>
+                <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
+                  <li>v{doc.version ?? 1} (aktif) · {doc.originalFilename ?? 'Berkas saat ini'}</li>
+                  {versions.map((item) => (
+                    <li key={item.version}>
+                      v{item.version} · {item.original_filename ?? item.storage_filename ?? 'Berkas terdahulu'}
+                    </li>
+                  ))}
+                </ul>
+                {versionError && <p role="alert" className="mt-2 text-xs text-red-600">{versionError}</p>}
+                {canUploadVersion && (
+                  <div className="mt-3 space-y-2">
+                    <input
+                      ref={versionInput}
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      disabled={uploadingVersion}
+                      onChange={(event) => setVersionFile(event.target.files?.[0] ?? null)}
+                      className="block w-full text-xs text-slate-600 file:mr-2 file:rounded-lg file:border-0 file:bg-green-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-green-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleUploadVersion()}
+                      disabled={!versionFile || uploadingVersion}
+                      className="w-full rounded-xl border border-[#185e48] px-4 py-2.5 text-sm font-semibold text-[#185e48] transition-colors hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {uploadingVersion ? `Mengunggah versi baru… ${uploadProgress}%` : 'Unggah Versi Baru'}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

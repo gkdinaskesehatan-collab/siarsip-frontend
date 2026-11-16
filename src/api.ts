@@ -1,6 +1,7 @@
 import type {
   ActivityEntry,
   Document,
+  DocumentVersion,
   OrganizationalUnit,
   UserAccount,
 } from "./types"
@@ -57,6 +58,9 @@ interface ApiDocument {
   file_url: string
 
   file_size: string
+  original_filename?: string | null
+  storage_filename?: string | null
+  version?: number
   visibility: Document["visibility"]
   file_hash?: string | null
   public_anonymization_confirmed?: boolean
@@ -492,6 +496,10 @@ function toDocument(d: ApiDocument): Document {
 
     fileSize: `${d.file_size} MB`,
 
+    version: d.version ?? 1,
+
+    originalFilename: d.original_filename ?? null,
+
     createdBy: d.created_by ?? null,
 
     organizationalUnitId: d.organizational_unit_id ?? null,
@@ -585,6 +593,28 @@ export async function updateDocument(
   return toDocument(row)
 }
 
+export async function uploadDocumentVersion(
+  id: string,
+  file: File,
+  onProgress?: (progress: number) => void,
+): Promise<Document> {
+  const form = new FormData()
+  form.append("file", file)
+  const row = await uploadRequest<ApiDocument>(
+    `/documents/${id}/versions`,
+    form,
+    onProgress,
+  )
+
+  return toDocument(row)
+}
+
+export async function fetchDocumentVersions(
+  id: string,
+): Promise<DocumentVersion[]> {
+  return request<DocumentVersion[]>(`/documents/${id}/versions`)
+}
+
 export async function deleteDocument(id: string): Promise<void> {
   await request(`/documents/${id}`, { method: "DELETE" })
 }
@@ -593,7 +623,9 @@ export function documentFileUrl(id: string, download = false): string {
   return `${API_URL}/documents/${id}/file${download ? "?download=1" : ""}`
 }
 
-export async function downloadDocumentFile(id: string): Promise<Blob> {
+export async function downloadDocumentFile(
+  id: string,
+): Promise<{ blob: Blob; filename: string | null }> {
   const token = getToken()
   const response = await fetch(documentFileUrl(id, true), {
     headers: token ? { Authorization: ["Bearer", token].join(" ") } : {},
@@ -607,7 +639,10 @@ export async function downloadDocumentFile(id: string): Promise<Blob> {
     )
   }
 
-  return response.blob()
+  const contentDisposition = response.headers.get("Content-Disposition")
+  const filename = contentDisposition?.match(/filename="([^"]+)"/i)?.[1] ?? null
+
+  return { blob: await response.blob(), filename }
 }
 
 export async function verifyDocument(file: File, documentId?: string | null): Promise<{

@@ -5,6 +5,7 @@ import {
   fetchDocuments,
   createDocument,
   updateDocument,
+  uploadDocumentVersion,
   deleteDocument,
   getToken,
   fetchCurrentUser,
@@ -131,6 +132,16 @@ export default function App() {
   ) => {
     const updated = await updateDocument(data, onProgress)
     setDocuments((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+  }
+
+  const handleUploadDocumentVersion = async (
+    id: string,
+    file: File,
+    onProgress?: (progress: number) => void,
+  ) => {
+    const updated = await uploadDocumentVersion(id, file, onProgress)
+    setDocuments((prev) => prev.map((document) => document.id === updated.id ? updated : document))
+    setSelectedDoc(updated)
   }
 
   const handleDeleteDocument = async (id: string) => {
@@ -272,6 +283,14 @@ export default function App() {
       {view === "detail" && selectedDoc && (
         <DocumentDetail
           document={selectedDoc}
+          canUploadVersion={
+            !!currentUser &&
+            ["administrator", "super_admin", "pengelola_arsip", "admin_bidang"].includes(currentUser.role) &&
+            (!["pengelola_arsip", "admin_bidang"].includes(currentUser.role) ||
+              (selectedDoc.organizationalUnitId !== null &&
+                currentUser.organizational_unit_id === selectedDoc.organizationalUnitId))
+          }
+          onUploadVersion={handleUploadDocumentVersion}
           onBack={() => setView(returnView)}
         />
       )}

@@ -32,6 +32,8 @@ export interface Document {
   description?: string
   fileUrl: string
   fileSize: string
+  version?: number
+  originalFilename?: string | null
   createdBy?: number | null
   organizationalUnitId?: number | null
   organizationalUnit?: string | null
@@ -74,6 +76,15 @@ export interface ActivityEntry {
   id: number
   description: string
   ip_address: string | null
+  created_at: string
+}
+
+export interface DocumentVersion {
+  version: number
+  original_filename: string | null
+  storage_filename: string | null
+  file_hash: string | null
+  file_size: string
   created_at: string
 }
 
