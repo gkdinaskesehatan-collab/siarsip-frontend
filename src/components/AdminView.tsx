@@ -7,6 +7,7 @@ import DeleteModal from "./DeleteModal"
 import type { DocumentFormData } from "../api"
 import Combobox from "./Combobox"
 import type { OrganizationalUnit, UserAccount } from "../types"
+import ActivityLogsView from "./ActivityLogsView"
 
 const DeleteModalView = DeleteModal as unknown as ComponentType<{
   document: Document
@@ -38,11 +39,13 @@ type Modal = null | { type: "add" } | { type: "edit"; doc: Document } | {
 
 function StatCard({
   label,
+  title,
   value,
   icon,
   color,
 }: {
   label: string
+  title?: string
   value: number
   icon: React.ReactNode
   color: string
@@ -60,7 +63,7 @@ function StatCard({
         <div className="font-display font-700 text-2xl text-[#0f2318]">
           {value}
         </div>
-        <div className="text-xs text-slate-500 font-medium mt-0.5">{label}</div>
+        <div title={title} className="text-xs text-slate-500 font-medium mt-0.5">{label}</div>
       </div>
     </div>
   )
@@ -77,7 +80,10 @@ export default function AdminView({
   onViewDocument,
 }: AdminViewProps) {
   const canManageDocuments =
-    user?.role === "super_admin" || user?.role === "admin_bidang"
+    user?.role === "administrator" ||
+    user?.role === "super_admin" ||
+    user?.role === "pengelola_arsip" ||
+    user?.role === "admin_bidang"
   const [modal, setModal] = useState<Modal>(null)
   const [search, setSearch] = useState("")
   const [catFilter, setCatFilter] = useState("")
@@ -93,7 +99,9 @@ export default function AdminView({
     const matchSearch =
       !search ||
       doc.title.toLowerCase().includes(search.toLowerCase()) ||
-      doc.documentNumber.toLowerCase().includes(search.toLowerCase())
+      doc.documentNumber.toLowerCase().includes(search.toLowerCase()) ||
+      doc.category.toLowerCase().includes(search.toLowerCase()) ||
+      (doc.categoryFullName ?? "").toLowerCase().includes(search.toLowerCase())
     const matchCat = !catFilter || doc.category === catFilter
     return matchSearch && matchCat
   })
@@ -141,6 +149,9 @@ export default function AdminView({
     .filter(([, v]) => v > 0)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
+  const categoryFullNames = new Map(
+    documents.map((document) => [document.category, document.categoryFullName ?? document.category]),
+  )
 
   const dateFormatted = (str: string) =>
     new Date(str).toLocaleDateString("id-ID", {
@@ -235,6 +246,7 @@ export default function AdminView({
             <StatCard
               key={cat}
               label={cat}
+              title={categoryFullNames.get(cat)}
               value={count}
               color="bg-teal-100 text-teal-700"
               icon={
@@ -390,6 +402,7 @@ export default function AdminView({
                           <CategoryBadge
                             category={doc.category}
                             customCategory={doc.customCategory}
+                            fullName={doc.categoryFullName}
                           />
                         </div>
                       </td>
@@ -397,7 +410,11 @@ export default function AdminView({
                         <CategoryBadge
                           category={doc.category}
                           customCategory={doc.customCategory}
+                          fullName={doc.categoryFullName}
                         />
+                        <div className="mt-1 text-[10px] font-medium text-slate-500">
+                          {doc.visibility === "secret" ? "Rahasia" : doc.visibility === "internal" ? "Internal" : "Publik"}
+                        </div>
                         {doc.organizationalUnit && (
                           <div className="mt-1 text-[10px] text-slate-400">
                             {doc.organizationalUnit}
@@ -438,8 +455,9 @@ export default function AdminView({
                           </button>
                           {canManageDocuments && (
                             <>
-                              {(user?.role === "super_admin" ||
-                                (user?.role === "admin_bidang" &&
+                              {(user?.role === "administrator" ||
+                                user?.role === "super_admin" ||
+                                ((user?.role === "pengelola_arsip" || user?.role === "admin_bidang") &&
                                   doc.organizationalUnitId ===
                                     user.organizational_unit_id)) && (
                                 <button
@@ -464,9 +482,10 @@ export default function AdminView({
                                   </svg>
                                 </button>
                               )}
-                              {(user?.role === "super_admin" ||
-                                (user?.role === "admin_bidang" &&
-                                  doc.createdBy === user.id)) && (
+                              {(user?.role === "administrator" ||
+                                user?.role === "super_admin" ||
+                                ((user?.role === "pengelola_arsip" || user?.role === "admin_bidang") &&
+                                  doc.organizationalUnitId === user.organizational_unit_id)) && (
                                 <button
                                   onClick={() =>
                                     setModal({ type: "delete", doc })
@@ -506,6 +525,9 @@ export default function AdminView({
             </span>
           </div>
         </div>
+        {(user?.role === "administrator" || user?.role === "super_admin") && (
+          <ActivityLogsView units={units} />
+        )}
       </div>
 
       {/* Modals */}

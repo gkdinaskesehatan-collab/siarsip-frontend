@@ -214,6 +214,10 @@ export default function DocumentModal({
     existingDoc?.documentNumber || "",
   )
   const [description, setDescription] = useState(existingDoc?.description || "")
+  const [visibility, setVisibility] = useState(existingDoc?.visibility ?? "public")
+  const [publicAnonymizationConfirmed, setPublicAnonymizationConfirmed] = useState(
+    existingDoc?.publicAnonymizationConfirmed ?? false,
+  )
   const [file, setFile] = useState<File | null>(null)
   const [organizationalUnitId, setOrganizationalUnitId] = useState<number | "">(
     existingDoc?.organizationalUnitId ?? user?.organizational_unit_id ?? "",
@@ -242,8 +246,15 @@ export default function DocumentModal({
       setError(`Ukuran berkas melebihi batas ${MAX_FILE_MB} MB.`)
       return
     }
-    if (user?.role === "super_admin" && !organizationalUnitId) {
+    if (
+      (user?.role === "administrator" || user?.role === "super_admin") &&
+      !organizationalUnitId
+    ) {
       setError("Unit kerja dokumen wajib dipilih.")
+      return
+    }
+    if (visibility === "public" && !publicAnonymizationConfirmed) {
+      setError("Konfirmasi anonimisasi wajib dicentang untuk dokumen publik.")
       return
     }
 
@@ -260,9 +271,12 @@ export default function DocumentModal({
           dateAdded,
           documentNumber: documentNumber.trim(),
           description: description.trim() || undefined,
+          visibility,
+          publicAnonymizationConfirmed,
           fileUrl: existingDoc?.fileUrl ?? "",
           fileSize: existingDoc?.fileSize ?? "",
           organizationalUnitId:
+            user?.role === "pengelola_arsip" ||
             user?.role === "admin_bidang"
               ? user.organizational_unit_id
               : organizationalUnitId === ""
@@ -420,11 +434,45 @@ export default function DocumentModal({
             />
           </div>
 
+          <div>
+            <label className={labelClass}>Tingkat Kerahasiaan</label>
+            <select
+              value={visibility}
+              onChange={(e) => setVisibility(e.target.value as typeof visibility)}
+              disabled={saving}
+              className={inputClass + " bg-white"}
+            >
+              <option value="public">Publik — dapat diakses tanpa login</option>
+              <option value="internal">Internal — wajib login</option>
+              <option value="secret">Rahasia — unit terkait, pimpinan, dan administrator</option>
+            </select>
+            {visibility === "public" && (
+              <label className="mt-2 flex items-start gap-2 text-xs leading-relaxed text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={publicAnonymizationConfirmed}
+                  onChange={(e) => setPublicAnonymizationConfirmed(e.target.checked)}
+                  disabled={saving}
+                  required
+                  className="mt-0.5 accent-[#185e48]"
+                />
+                <span>
+                  Saya memastikan dokumen publik telah dianonimkan dan bebas dari
+                  data pribadi spesifik, termasuk NIK, identitas pasien, serta
+                  rekam medis individu.
+                </span>
+              </label>
+            )}
+          </div>
+
           {/* File uploader */}
-          {(user?.role === "super_admin" || user?.role === "admin_bidang") && (
+          {user &&
+            ["administrator", "super_admin", "pengelola_arsip", "admin_bidang"].includes(
+              user.role,
+            ) && (
             <div>
               <label className={labelClass}>Unit Kerja / Bidang</label>
-              {user.role === "super_admin" ? (
+              {user.role === "administrator" || user.role === "super_admin" ? (
                 <select
                   value={organizationalUnitId}
                   onChange={(e) =>

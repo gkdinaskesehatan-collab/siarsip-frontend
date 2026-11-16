@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Document } from '../types';
 import CategoryBadge from './CategoryBadge';
 import PdfViewer from './PdfViewer';
-import { documentFileUrl } from '../api';
+import { downloadDocumentFile, documentFileUrl } from '../api';
 
 interface DocumentDetailProps {
   document: Document;
@@ -11,9 +11,10 @@ interface DocumentDetailProps {
 
 export default function DocumentDetail({ document: doc, onBack }: DocumentDetailProps) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
 
   // Versi berkas: berubah setiap data/berkas diperbarui, sehingga preview ikut dimuat ulang
-  const fileVersion = doc.fileSize;
+  const fileVersion = doc.fileHash ?? doc.fileSize;
   const previewSrc = `${documentFileUrl(doc.id)}?v=${encodeURIComponent(fileVersion)}`;
   const fileSizeMb = Number.parseFloat(doc.fileSize);
   const totalBytes = Number.isFinite(fileSizeMb) ? fileSizeMb * 1024 * 1024 : undefined;
@@ -22,8 +23,19 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
 
-  const handleDownload = () => {
-    window.open(doc.fileUrl.replace('/preview', '/view'), '_blank');
+  const handleDownload = async () => {
+    setDownloadError('');
+    try {
+      const blob = await downloadDocumentFile(doc.id);
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement('a');
+      link.href = url;
+      link.download = `${doc.title}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : 'Unduhan gagal.');
+    }
   };
 
   return (
@@ -52,10 +64,22 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
               </h2>
 
               <div className="mb-4">
-                <CategoryBadge category={doc.category} customCategory={doc.customCategory} size="md" />
+                <CategoryBadge category={doc.category} customCategory={doc.customCategory} fullName={doc.categoryFullName} size="md" />
               </div>
 
               <dl className="space-y-3 text-sm">
+                {doc.categoryFullName && (
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap Jenis Dokumen</dt>
+                    <dd className="mt-0.5 text-slate-700">{doc.categoryFullName}</dd>
+                  </div>
+                )}
+                {doc.categoryDescription && (
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Keterangan Jenis Dokumen</dt>
+                    <dd className="mt-0.5 text-slate-600 leading-relaxed text-xs">{doc.categoryDescription}</dd>
+                  </div>
+                )}
                 <div>
                   <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nomor Dokumen</dt>
                   <dd className="mt-0.5 font-mono text-slate-700 text-xs">{doc.documentNumber}</dd>
@@ -71,6 +95,12 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
                 <div>
                   <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ukuran Berkas</dt>
                   <dd className="mt-0.5 text-slate-700">{doc.fileSize}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Akses</dt>
+                  <dd className="mt-0.5 text-slate-700">
+                    {doc.visibility === "secret" ? "Rahasia" : doc.visibility === "internal" ? "Internal" : "Publik"}
+                  </dd>
                 </div>
                 {doc.description && (
                   <div className="pt-2 border-t border-slate-100">
@@ -89,6 +119,7 @@ export default function DocumentDetail({ document: doc, onBack }: DocumentDetail
                 </svg>
                 Unduh Berkas ({doc.fileSize})
               </button>
+              {downloadError && <p role="alert" className="mt-2 text-xs text-red-600">{downloadError}</p>}
             </div>
           </div>
 

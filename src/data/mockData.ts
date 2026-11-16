@@ -1,6 +1,6 @@
 import type { Document } from '../types';
 
-export const MOCK_DOCUMENTS: Document[] = [
+export const MOCK_DOCUMENTS: Omit<Document, 'visibility'>[] = [
   {
     id: '1',
     title: 'Rencana Kerja Dinas Kesehatan Kabupaten Gunungkidul Tahun 2024',

@@ -13,11 +13,10 @@ import {
 import type { OrganizationalUnit, UserAccount, UserRole } from "../types"
 
 const roles: { value: UserRole; label: string }[] = [
-  { value: "super_admin", label: "Super Admin" },
-
-  { value: "admin_bidang", label: "Admin Bidang / Pengelola Arsip" },
-
-  { value: "viewer", label: "Staf / Viewer" },
+  { value: "administrator", label: "Administrator" },
+  { value: "pengelola_arsip", label: "Pengelola Arsip" },
+  { value: "pegawai_unit", label: "Pegawai Unit" },
+  { value: "pimpinan", label: "Pimpinan" },
 ]
 
 function UserForm({
@@ -47,7 +46,7 @@ function UserForm({
     user?.organizational_unit_id ?? "",
   )
 
-  const [role, setRole] = useState<UserRole>(user?.role ?? "viewer")
+  const [role, setRole] = useState<UserRole>(user?.role ?? "pegawai_unit")
 
   const [password, setPassword] = useState("")
 

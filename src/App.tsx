@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { Document, OrganizationalUnit, UserAccount, View } from "./types"
 import { DOCUMENT_CATEGORIES } from "./types"
 import {
@@ -22,14 +22,18 @@ import LoginView from "./components/LoginView"
 import AdminView from "./components/AdminView"
 import AccountSettingsView from "./components/AccountSettingsView"
 import UserManagementView from "./components/UserManagementView"
+import VerifyDocumentView from "./components/VerifyDocumentView"
 
 export default function App() {
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
   const [waking, setWaking] = useState(false)
-  const [view, setView] = useState<View>("public")
+  const [view, setView] = useState<View>(
+    () => window.location.pathname === "/verifikasi" ? "verify" : "public",
+  )
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
+  const [returnView, setReturnView] = useState<View>("public")
   const [isAdmin, setIsAdmin] = useState(() => getToken() !== null)
   const [currentUser, setCurrentUser] = useState<UserAccount | null>(null)
   const [units, setUnits] = useState<OrganizationalUnit[]>([])
@@ -56,7 +60,7 @@ export default function App() {
       fetchCurrentUser()
         .then((user) => {
           setCurrentUser(user)
-          if (user.role === "super_admin") {
+          if (user.role === "administrator" || user.role === "super_admin") {
             fetchOrganizationalUnits()
               .then(setUnits)
               .catch((e: Error) => setLoadError(e.message))
@@ -78,11 +82,17 @@ export default function App() {
   }, [])
 
   const handleNavigate = (target: View) => {
+    if (target === "verify") {
+      window.history.pushState({}, "", "/verifikasi")
+    } else if (window.location.pathname === "/verifikasi") {
+      window.history.pushState({}, "", "/")
+    }
     setView(target)
     if (target !== "detail") setSelectedDoc(null)
   }
 
   const handleSelectDocument = (doc: Document) => {
+    setReturnView(view === "internal" ? "internal" : "public")
     setSelectedDoc(doc)
     setView("detail")
   }
@@ -92,7 +102,7 @@ export default function App() {
     setIsAdmin(true)
     setView("admin")
     void loadDocuments()
-    if (user.role === "super_admin") {
+    if (user.role === "administrator" || user.role === "super_admin") {
       fetchOrganizationalUnits()
         .then(setUnits)
         .catch((e: Error) => setLoadError(e.message))
@@ -143,6 +153,10 @@ export default function App() {
         legacyDoc.jenis
       return category ? [String(category)] : []
     }),
+  )
+  const publicDocuments = useMemo(
+    () => documents.filter((document) => document.visibility === "public"),
+    [documents],
   )
 
   const years = Array.from(
@@ -239,19 +253,29 @@ export default function App() {
 
       {view === "public" && (
         <PublicView
+          documents={publicDocuments}
+          categories={categories}
+          years={years}
+          onSelectDocument={handleSelectDocument}
+        />
+      )}
+      {view === "internal" && isAdmin && (
+        <PublicView
           documents={documents}
           categories={categories}
           years={years}
           onSelectDocument={handleSelectDocument}
+          internalPortal
         />
       )}
 
       {view === "detail" && selectedDoc && (
         <DocumentDetail
           document={selectedDoc}
-          onBack={() => setView("public")}
+          onBack={() => setView(returnView)}
         />
       )}
+      {view === "verify" && <VerifyDocumentView />}
 
       {view === "admin" && isAdmin && (
         <AdminView
@@ -274,7 +298,7 @@ export default function App() {
           onUserUpdated={setCurrentUser}
         />
       )}
-      {view === "users" && isAdmin && currentUser?.role === "super_admin" && (
+      {view === "users" && isAdmin && (currentUser?.role === "administrator" || currentUser?.role === "super_admin") && (
         <UserManagementView
           currentUser={currentUser}
           units={units}

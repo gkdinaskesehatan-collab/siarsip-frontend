@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy, PageViewport, RenderTask } from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { getToken } from '../api';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -224,7 +225,12 @@ export default function PdfViewer({
 
     (async () => {
       try {
-        const res = await fetch(src, { cache: 'no-store', signal: controller.signal }); // jangan pakai cache browser
+        const token = getToken();
+        const res = await fetch(src, {
+          cache: 'no-store',
+          signal: controller.signal,
+          headers: token ? { Authorization: ["Bearer", token].join(" ") } : {},
+        });
         if (!res.ok) throw new Error(`Server menjawab ${res.status}`);
         if (!res.body) throw new Error('Browser tidak mendukung pembacaan dokumen bertahap.');
 

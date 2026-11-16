@@ -8,6 +8,7 @@ interface PublicViewProps {
   categories: string[]; // semua kategori yang ada (otomatis bertambah)
   years: number[]; // tahun dari dokumen yang ada (otomatis bertambah)
   onSelectDocument: (doc: Document) => void;
+  internalPortal?: boolean;
 }
 
 function DocumentCard({ doc, onSelect }: { doc: Document; onSelect: () => void }) {
@@ -18,7 +19,7 @@ function DocumentCard({ doc, onSelect }: { doc: Document; onSelect: () => void }
   return (
     <div className="bg-white border border-green-100 rounded-xl p-5 flex flex-col gap-3 hover:border-brand-400 hover:shadow-md transition-all group">
       <div className="flex items-start justify-between gap-2">
-        <CategoryBadge category={doc.category} customCategory={doc.customCategory} />
+        <CategoryBadge category={doc.category} customCategory={doc.customCategory} fullName={doc.categoryFullName} />
         <span className="text-xs font-mono text-slate-400 flex-shrink-0">{doc.year}</span>
       </div>
       <h3 className="font-display font-600 text-sm sm:text-[15px] text-[#0f2318] leading-snug group-hover:text-brand-700 transition-colors line-clamp-3">
@@ -50,7 +51,7 @@ function DocumentCard({ doc, onSelect }: { doc: Document; onSelect: () => void }
 const FILTER_INPUT =
   'w-full px-3 py-2 pr-8 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white text-slate-700';
 
-export default function PublicView({ documents, categories, years, onSelectDocument }: PublicViewProps) {
+export default function PublicView({ documents, categories, years, onSelectDocument, internalPortal = false }: PublicViewProps) {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
@@ -62,7 +63,9 @@ export default function PublicView({ documents, categories, years, onSelectDocum
       const matchSearch =
         !search ||
         doc.title.toLowerCase().includes(search.toLowerCase()) ||
-        doc.documentNumber.toLowerCase().includes(search.toLowerCase());
+        doc.documentNumber.toLowerCase().includes(search.toLowerCase()) ||
+        doc.category.toLowerCase().includes(search.toLowerCase()) ||
+        (doc.categoryFullName ?? '').toLowerCase().includes(search.toLowerCase());
       const matchCategory = !categoryFilter || doc.category === categoryFilter;
       const matchYear = !yearFilter || doc.year === Number(yearFilter);
       return matchSearch && matchCategory && matchYear;
@@ -80,11 +83,12 @@ export default function PublicView({ documents, categories, years, onSelectDocum
             <div className="w-1 h-10 bg-white/40 rounded-full flex-shrink-0 mt-1"></div>
             <div>
               <h1 className="font-display font-700 text-2xl sm:text-3xl tracking-tight">
-                Sistem Informasi Dokumen &amp; Arsip Kesehatan Internal
+                {internalPortal ? 'Ruang Kerja Dokumen Internal' : 'Sistem Informasi Dokumen & Arsip Kesehatan'}
               </h1>
               <p className="text-green-100 text-sm sm:text-base mt-1 max-w-xl">
-                Portal resmi dokumentasi dan arsip Dinas Kesehatan Kabupaten Gunungkidul.
-                Temukan dan unduh dokumen publik sektor kesehatan dengan mudah.
+                {internalPortal
+                  ? 'Dokumen sesuai hak akses akun dan unit kerja Anda.'
+                  : 'Portal resmi Dinas Kesehatan Kabupaten Gunungkidul untuk mencari dokumen publik.'}
               </p>
             </div>
           </div>
@@ -102,7 +106,7 @@ export default function PublicView({ documents, categories, years, onSelectDocum
               </svg>
               <input
                 type="text"
-                placeholder="Cari judul atau nomor dokumen..."
+                placeholder="Cari judul, kategori, atau nomor dokumen..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"

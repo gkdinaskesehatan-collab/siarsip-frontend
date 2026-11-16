@@ -17,11 +17,13 @@ export default function Header({
   onLogout,
 }: HeaderProps) {
   const roleLabel =
-    user?.role === "super_admin"
-      ? "Super Admin"
-      : user?.role === "admin_bidang"
-        ? "Admin Bidang"
-        : "Viewer"
+    user?.role === "administrator" || user?.role === "super_admin"
+      ? "Administrator"
+      : user?.role === "pengelola_arsip" || user?.role === "admin_bidang"
+        ? "Pengelola Arsip"
+        : user?.role === "pimpinan"
+          ? "Pimpinan"
+          : "Pegawai Unit"
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-green-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,6 +73,16 @@ export default function Header({
                   Katalog Publik
                 </button>
                 <button
+                  onClick={() => onNavigate("internal")}
+                  className={`hidden md:block text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                    currentView === "internal"
+                      ? "bg-brand-100 text-brand-800"
+                      : "text-brand-700 hover:bg-brand-50"
+                  }`}
+                >
+                  Ruang Internal
+                </button>
+                <button
                   onClick={() => onNavigate("account")}
                   className={`block text-sm font-medium px-2 sm:px-3 py-1.5 rounded-md transition-colors ${
                     currentView === "account"
@@ -80,7 +92,7 @@ export default function Header({
                 >
                   Akun Saya
                 </button>
-                {user?.role === "super_admin" && (
+                {(user?.role === "administrator" || user?.role === "super_admin") && (
                   <button
                     onClick={() => onNavigate("users")}
                     className={`hidden sm:block text-sm font-medium px-2 sm:px-3 py-1.5 rounded-md transition-colors ${
@@ -105,6 +117,12 @@ export default function Header({
               </>
             ) : (
               <>
+                <button
+                  onClick={() => onNavigate("verify")}
+                  className="hidden sm:block text-sm font-medium px-3 py-1.5 rounded-md text-brand-700 hover:bg-brand-50"
+                >
+                  Verifikasi Dokumen
+                </button>
                 <button
                   onClick={() => onNavigate("public")}
                   className={`hidden sm:block text-sm font-medium px-3 py-1.5 rounded-md transition-colors text-brand-700 hover:bg-brand-50`}

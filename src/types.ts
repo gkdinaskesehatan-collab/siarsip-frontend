@@ -1,18 +1,19 @@
 // Daftar kategori awal (dipakai sebagai cadangan sebelum data dari server dimuat).
 // Kategori baru yang ditambahkan admin tersimpan di database, bukan di sini.
 export const DOCUMENT_CATEGORIES = [
-  "Renja Dinas Kesehatan",
+  "Renja",
   "Renstra",
-  "KLHS RPJPD - RPJMD",
+  "KLHS RPJPD/RPJMD",
   "Profil Kesehatan",
-  "Laporan Pengendalian",
+  "POK",
   "LKJIP",
   "LPPD",
   "ROPK",
   "SIPD",
   "P3DN",
-  "Kumpulan Perbub",
-  "Surat Edaran",
+  "Perbup",
+  "SE",
+  "SOP",
 ] as const
 
 // Kategori sekarang bebas (bisa bertambah), jadi tipenya string.
@@ -22,6 +23,8 @@ export interface Document {
   id: string
   title: string
   category: DocumentCategory
+  categoryFullName?: string
+  categoryDescription?: string
   customCategory?: string // tidak dipakai lagi, dibiarkan agar komponen lama tidak error
   year: number
   dateAdded: string
@@ -32,9 +35,21 @@ export interface Document {
   createdBy?: number | null
   organizationalUnitId?: number | null
   organizationalUnit?: string | null
+  visibility: DocumentVisibility
+  fileHash?: string | null
+  publicAnonymizationConfirmed?: boolean
 }
 
-export type UserRole = "super_admin" | "admin_bidang" | "viewer"
+export type UserRole =
+  | "administrator"
+  | "pengelola_arsip"
+  | "pegawai_unit"
+  | "pimpinan"
+  | "super_admin"
+  | "admin_bidang"
+  | "viewer"
+
+export type DocumentVisibility = "public" | "internal" | "secret"
 
 export interface UserAccount {
   id: number
@@ -62,4 +77,12 @@ export interface ActivityEntry {
   created_at: string
 }
 
-export type View = "public" | "detail" | "login" | "admin" | "account" | "users"
+export type View =
+  | "public"
+  | "internal"
+  | "detail"
+  | "login"
+  | "admin"
+  | "account"
+  | "users"
+  | "verify"

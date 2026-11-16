@@ -42,15 +42,16 @@ function styleFor(category: string): string {
 interface CategoryBadgeProps {
   category: DocumentCategory;
   customCategory?: string;
+  fullName?: string;
   size?: 'sm' | 'md';
 }
 
-export default function CategoryBadge({ category, customCategory, size = 'sm' }: CategoryBadgeProps) {
+export default function CategoryBadge({ category, customCategory, fullName, size = 'sm' }: CategoryBadgeProps) {
   const label = category === 'Lainnya' && customCategory ? customCategory : category;
   const style = styleFor(category);
   const sizeClass = size === 'sm' ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-1';
   return (
-    <span className={`inline-block font-semibold rounded border uppercase tracking-wide ${style} ${sizeClass}`}>
+    <span title={fullName || label} className={`inline-block font-semibold rounded border uppercase tracking-wide ${style} ${sizeClass}`}>
       {label}
     </span>
   );

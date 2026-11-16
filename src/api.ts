@@ -31,8 +31,10 @@ export type DocumentFormData = Omit<Document, "id"> & {
 
 interface ApiCategory {
   id: number
-
   name: string
+  short_name?: string
+  full_name?: string
+  description?: string | null
 }
 
 interface ApiDocument {
@@ -55,6 +57,9 @@ interface ApiDocument {
   file_url: string
 
   file_size: string
+  visibility: Document["visibility"]
+  file_hash?: string | null
+  public_anonymization_confirmed?: boolean
 
   category?: ApiCategory | null
 
@@ -440,7 +445,7 @@ export async function logout(): Promise<void> {
 export async function fetchCategories(): Promise<string[]> {
   const rows = await request<ApiCategory[]>("/categories")
 
-  return rows.map((c) => c.name)
+  return rows.map((c) => c.short_name ?? c.name)
 }
 
 /** Gabungkan daftar kategori, tanpa duplikat (huruf besar/kecil dianggap sama). */
@@ -469,7 +474,11 @@ function toDocument(d: ApiDocument): Document {
 
     title: d.title,
 
-    category: d.category?.name ?? "Tanpa Kategori",
+    category: d.category?.short_name ?? d.category?.name ?? "Tanpa Kategori",
+
+    categoryFullName: d.category?.full_name ?? d.category?.name ?? undefined,
+
+    categoryDescription: d.category?.description ?? undefined,
 
     year: Number(d.year),
 
@@ -479,7 +488,7 @@ function toDocument(d: ApiDocument): Document {
 
     description: d.description ?? undefined,
 
-    fileUrl: d.file_url,
+    fileUrl: documentFileUrl(String(d.id)),
 
     fileSize: `${d.file_size} MB`,
 
@@ -488,6 +497,12 @@ function toDocument(d: ApiDocument): Document {
     organizationalUnitId: d.organizational_unit_id ?? null,
 
     organizationalUnit: d.organizational_unit?.name ?? null,
+
+    visibility: d.visibility ?? "public",
+
+    fileHash: d.file_hash ?? null,
+
+    publicAnonymizationConfirmed: d.public_anonymization_confirmed ?? false,
   }
 }
 
@@ -507,6 +522,15 @@ function buildForm(data: DocumentFormData): FormData {
   form.append("document_number", data.documentNumber || "-")
 
   form.append("description", data.description ?? "")
+
+  form.append("visibility", data.visibility)
+
+  if (data.visibility === "public") {
+    form.append(
+      "public_anonymization_confirmed",
+      data.publicAnonymizationConfirmed ? "1" : "0",
+    )
+  }
 
   if (data.file) form.append("file", data.file)
 
@@ -565,6 +589,77 @@ export async function deleteDocument(id: string): Promise<void> {
   await request(`/documents/${id}`, { method: "DELETE" })
 }
 
-export function documentFileUrl(id: string): string {
-  return `${API_URL}/documents/${id}/file`
+export function documentFileUrl(id: string, download = false): string {
+  return `${API_URL}/documents/${id}/file${download ? "?download=1" : ""}`
+}
+
+export async function downloadDocumentFile(id: string): Promise<Blob> {
+  const token = getToken()
+  const response = await fetch(documentFileUrl(id, true), {
+    headers: token ? { Authorization: ["Bearer", token].join(" ") } : {},
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      response.status === 401
+        ? "Silakan masuk untuk mengakses dokumen ini."
+        : `Unduhan gagal (${response.status}).`,
+    )
+  }
+
+  return response.blob()
+}
+
+export async function verifyDocument(file: File, documentId?: string | null): Promise<{
+  verified: boolean
+  sha256: string
+  message: string
+  document: { id: number; title: string; category: string; year: number } | null
+}> {
+  const form = new FormData()
+  form.append("file", file)
+  if (documentId) form.append("document_id", documentId)
+  return uploadRequest("/verify-document", form)
+}
+
+export interface ActivityLogRecord {
+  id: number
+  user_id: number | null
+  action: string
+  description: string
+  ip_address: string | null
+  created_at: string
+  user: { id: number; name: string } | null
+  organizational_unit: { id: number; name: string } | null
+  document: { id: number; title: string } | null
+}
+
+export async function fetchActivityLogs(params: {
+  page?: number
+  organizational_unit_id?: number | ""
+} = {}): Promise<{
+  data: ActivityLogRecord[]
+  current_page: number
+  last_page: number
+  total: number
+}> {
+  const query = new URLSearchParams()
+  query.set("page", String(params.page ?? 1))
+  if (params.organizational_unit_id) {
+    query.set("organizational_unit_id", String(params.organizational_unit_id))
+  }
+  return request(`/admin/activity-logs?${query}`)
+}
+
+export async function exportActivityLogs(
+  organizationalUnitId: number | "",
+): Promise<Blob> {
+  const query = new URLSearchParams()
+  if (organizationalUnitId) query.set("organizational_unit_id", String(organizationalUnitId))
+  const token = getToken()
+  const response = await fetch(`${API_URL}/admin/activity-logs/export?${query}`, {
+    headers: token ? { Authorization: ["Bearer", token].join(" ") } : {},
+  })
+  if (!response.ok) throw new Error(`Ekspor rekap gagal (${response.status}).`)
+  return response.blob()
 }
