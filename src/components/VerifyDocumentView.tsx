@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { verifyDocument } from "../api"
+import { getToken, verifyDocument } from "../api"
 
 export default function VerifyDocumentView() {
   const documentId = new URLSearchParams(window.location.search).get("document_id")
@@ -8,10 +8,16 @@ export default function VerifyDocumentView() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<Awaited<ReturnType<typeof verifyDocument>> | null>(null)
+  const loginRequired = visibility === "internal" || visibility === "secret"
+  const needsLogin = loginRequired && !getToken()
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!file || busy) return
+    if (needsLogin) {
+      setError("Silakan masuk terlebih dahulu untuk memverifikasi dokumen internal atau rahasia.")
+      return
+    }
     setBusy(true)
     setError("")
     setResult(null)
@@ -48,6 +54,15 @@ export default function VerifyDocumentView() {
               <option value="secret">Rahasia</option>
             </select>
           </label>
+          {needsLogin && (
+            <p
+              role="status"
+              className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+            >
+              Anda belum masuk. Klik <strong>Masuk</strong> di bagian atas halaman
+              terlebih dahulu untuk memverifikasi dokumen {visibility === "secret" ? "rahasia" : "internal"}.
+            </p>
+          )}
           <label className="block text-sm font-medium text-slate-700">
             Berkas PDF
             <input
@@ -64,7 +79,7 @@ export default function VerifyDocumentView() {
           </label>
           <button
             type="submit"
-            disabled={!file || busy}
+            disabled={!file || busy || needsLogin}
             className="w-full rounded-xl bg-[#185e48] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
           >
             {busy ? "Memverifikasi…" : "Verifikasi PDF"}

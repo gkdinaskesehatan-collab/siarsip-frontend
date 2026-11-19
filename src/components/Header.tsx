@@ -81,6 +81,16 @@ export default function Header({
                   Ruang Internal
                 </button>
                 <button
+                  onClick={() => onNavigate("verify")}
+                  className={`hidden md:block text-sm font-medium px-3 py-1.5 rounded-md transition-colors ${
+                    currentView === "verify"
+                      ? "bg-brand-100 text-brand-800"
+                      : "text-brand-700 hover:bg-brand-50"
+                  }`}
+                >
+                  Verifikasi Dokumen
+                </button>
+                <button
                   onClick={() => onNavigate("account")}
                   className={`block text-sm font-medium px-2 sm:px-3 py-1.5 rounded-md transition-colors ${
                     currentView === "account"
