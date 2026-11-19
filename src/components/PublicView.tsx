@@ -2,6 +2,13 @@ import { useState, useMemo } from 'react';
 import type { Document } from '../types';
 import CategoryBadge from './CategoryBadge';
 import Combobox from './Combobox';
+import VisibilityBadge from './VisibilityBadge';
+
+const VISIBILITY_CARD_STYLES = {
+  public: 'border-emerald-200 shadow-sm shadow-emerald-100 hover:border-emerald-400 hover:shadow-md',
+  internal: 'border-blue-200 shadow-sm shadow-blue-100 hover:border-blue-400 hover:shadow-md',
+  secret: 'border-rose-200 shadow-sm shadow-rose-100 hover:border-rose-400 hover:shadow-md',
+} as const;
 
 interface PublicViewProps {
   documents: Document[];
@@ -17,9 +24,12 @@ function DocumentCard({ doc, onSelect }: { doc: Document; onSelect: () => void }
   });
 
   return (
-    <div className="bg-white border border-green-100 rounded-xl p-5 flex flex-col gap-3 hover:border-brand-400 hover:shadow-md transition-all group">
+    <div className={`bg-white border rounded-xl p-5 flex flex-col gap-3 transition-all group ${VISIBILITY_CARD_STYLES[doc.visibility]}`}>
       <div className="flex items-start justify-between gap-2">
-        <CategoryBadge category={doc.category} customCategory={doc.customCategory} fullName={doc.categoryFullName} />
+        <div className="flex flex-wrap items-center gap-2">
+          <CategoryBadge category={doc.category} customCategory={doc.customCategory} fullName={doc.categoryFullName} />
+          <VisibilityBadge visibility={doc.visibility} />
+        </div>
         <span className="text-xs font-mono text-slate-400 flex-shrink-0">{doc.year}</span>
       </div>
       <h3 className="font-display font-600 text-sm sm:text-[15px] text-[#0f2318] leading-snug group-hover:text-brand-700 transition-colors line-clamp-3">

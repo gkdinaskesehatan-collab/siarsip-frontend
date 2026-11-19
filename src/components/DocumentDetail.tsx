@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Document, DocumentVersion } from '../types';
 import CategoryBadge from './CategoryBadge';
+import VisibilityBadge from './VisibilityBadge';
 import PdfViewer from './PdfViewer';
 import { downloadDocumentFile, documentFileUrl, fetchDocumentVersions } from '../api';
 
@@ -146,8 +147,8 @@ export default function DocumentDetail({
                 </div>
                 <div>
                   <dt className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Akses</dt>
-                  <dd className="mt-0.5 text-slate-700">
-                    {doc.visibility === "secret" ? "Rahasia" : doc.visibility === "internal" ? "Internal" : "Publik"}
+                  <dd className="mt-1">
+                    <VisibilityBadge visibility={doc.visibility} />
                   </dd>
                 </div>
                 {doc.description && (

@@ -445,7 +445,7 @@ export default function DocumentModal({
             >
               <option value="public">Publik — dapat diakses tanpa login</option>
               <option value="internal">Internal — wajib login</option>
-              <option value="secret">Rahasia — unit terkait, pimpinan, dan administrator</option>
+              <option value="secret">Rahasia — unit terkait dan administrator</option>
             </select>
             {visibility === "public" && (
               <label className="mt-2 flex items-start gap-2 text-xs leading-relaxed text-slate-600">

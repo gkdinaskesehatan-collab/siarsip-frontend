@@ -46,7 +46,6 @@ export type UserRole =
   | "administrator"
   | "pengelola_arsip"
   | "pegawai_unit"
-  | "pimpinan"
   | "super_admin"
   | "admin_bidang"
   | "viewer"

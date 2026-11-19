@@ -16,7 +16,6 @@ const roles: { value: UserRole; label: string }[] = [
   { value: "administrator", label: "Administrator" },
   { value: "pengelola_arsip", label: "Pengelola Arsip" },
   { value: "pegawai_unit", label: "Pegawai Unit" },
-  { value: "pimpinan", label: "Pimpinan" },
 ]
 
 function UserForm({

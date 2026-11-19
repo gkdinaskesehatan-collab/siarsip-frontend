@@ -2,6 +2,7 @@ import { useState } from "react"
 import type { ComponentType } from "react"
 import type { Document } from "../types"
 import CategoryBadge from "./CategoryBadge"
+import VisibilityBadge from "./VisibilityBadge"
 import DocumentModal from "./DocumentModal"
 import DeleteModal from "./DeleteModal"
 import type { DocumentFormData } from "../api"
@@ -404,6 +405,9 @@ export default function AdminView({
                             customCategory={doc.customCategory}
                             fullName={doc.categoryFullName}
                           />
+                          <div className="mt-1">
+                            <VisibilityBadge visibility={doc.visibility} />
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-3.5 hidden sm:table-cell">
@@ -412,8 +416,8 @@ export default function AdminView({
                           customCategory={doc.customCategory}
                           fullName={doc.categoryFullName}
                         />
-                        <div className="mt-1 text-[10px] font-medium text-slate-500">
-                          {doc.visibility === "secret" ? "Rahasia" : doc.visibility === "internal" ? "Internal" : "Publik"}
+                        <div className="mt-1">
+                          <VisibilityBadge visibility={doc.visibility} />
                         </div>
                         {doc.organizationalUnit && (
                           <div className="mt-1 text-[10px] text-slate-400">

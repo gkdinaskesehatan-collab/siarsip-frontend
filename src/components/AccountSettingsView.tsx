@@ -10,7 +10,6 @@ const roleLabels = {
   administrator: "Administrator",
   pengelola_arsip: "Pengelola Arsip",
   pegawai_unit: "Pegawai Unit",
-  pimpinan: "Pimpinan",
   super_admin: "Super Admin",
 
   admin_bidang: "Admin Bidang / Pengelola Arsip",

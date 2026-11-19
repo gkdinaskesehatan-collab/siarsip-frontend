@@ -21,9 +21,7 @@ export default function Header({
       ? "Administrator"
       : user?.role === "pengelola_arsip" || user?.role === "admin_bidang"
         ? "Pengelola Arsip"
-        : user?.role === "pimpinan"
-          ? "Pimpinan"
-          : "Pegawai Unit"
+        : "Pegawai Unit"
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-green-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
