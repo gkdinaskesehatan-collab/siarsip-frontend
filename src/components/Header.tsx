@@ -47,12 +47,12 @@ export default function Header({
           </button>
 
           {/* Right side */}
-          <div className="hidden xl:flex items-center gap-1">
+          <div className="hidden xl:flex items-center gap-2">
             {isAdmin ? (
               <>
                 <button
                   onClick={() => onNavigate("admin")}
-                  className={`whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                  className={`whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                     currentView === "admin"
                       ? "bg-brand-100 text-brand-800"
                       : "text-brand-700 hover:bg-brand-50"
@@ -62,7 +62,7 @@ export default function Header({
                 </button>
                 <button
                   onClick={() => onNavigate("public")}
-                  className={`hidden sm:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                  className={`hidden sm:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                     currentView === "public" || currentView === "detail"
                       ? "bg-brand-100 text-brand-800"
                       : "text-brand-700 hover:bg-brand-50"
@@ -72,7 +72,7 @@ export default function Header({
                 </button>
                 <button
                   onClick={() => onNavigate("internal")}
-                  className={`hidden md:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                  className={`hidden md:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                     currentView === "internal"
                       ? "bg-brand-100 text-brand-800"
                       : "text-brand-700 hover:bg-brand-50"
@@ -82,7 +82,7 @@ export default function Header({
                 </button>
                 <button
                   onClick={() => onNavigate("verify")}
-                  className={`hidden md:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                  className={`hidden md:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                     currentView === "verify"
                       ? "bg-brand-100 text-brand-800"
                       : "text-brand-700 hover:bg-brand-50"
@@ -92,7 +92,7 @@ export default function Header({
                 </button>
                 <button
                   onClick={() => onNavigate("account")}
-                  className={`block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                  className={`block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                     currentView === "account"
                       ? "bg-brand-100 text-brand-800"
                       : "text-brand-700 hover:bg-brand-50"
@@ -103,7 +103,7 @@ export default function Header({
                 {(user?.role === "administrator" || user?.role === "super_admin") && (
                   <button
                     onClick={() => onNavigate("users")}
-                    className={`hidden sm:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors ${
+                    className={`hidden sm:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors ${
                       currentView === "users"
                         ? "bg-brand-100 text-brand-800"
                         : "text-brand-700 hover:bg-brand-50"
@@ -112,13 +112,13 @@ export default function Header({
                     Pengguna
                   </button>
                 )}
-                <span className="hidden sm:flex whitespace-nowrap items-center gap-1.5 bg-brand-50 text-brand-700 text-[11px] font-semibold px-2 py-1 rounded-full border border-brand-200">
+                <span className="hidden sm:flex whitespace-nowrap items-center gap-1.5 bg-brand-50 text-brand-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-brand-200">
                   <span className="w-1.5 h-1.5 bg-brand-500 rounded-full"></span>
                   {roleLabel}
                 </span>
                 <button
                   onClick={onLogout}
-                  className="whitespace-nowrap text-xs text-red-600 hover:text-red-700 font-medium px-2.5 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-200"
+                  className="whitespace-nowrap text-[13px] text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-200"
                 >
                   Keluar
                 </button>
@@ -127,19 +127,19 @@ export default function Header({
               <>
                 <button
                   onClick={() => onNavigate("verify")}
-                  className="hidden sm:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md text-brand-700 hover:bg-brand-50"
+                  className="hidden sm:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md text-brand-700 hover:bg-brand-50"
                 >
                   Verifikasi Dokumen
                 </button>
                 <button
                   onClick={() => onNavigate("public")}
-                  className={`hidden sm:block whitespace-nowrap text-xs font-medium px-2 py-1.5 rounded-md transition-colors text-brand-700 hover:bg-brand-50`}
+                  className={`hidden sm:block whitespace-nowrap text-[13px] font-medium px-2.5 py-1.5 rounded-md transition-colors text-brand-700 hover:bg-brand-50`}
                 >
                   Katalog
                 </button>
                 <button
                   onClick={() => onNavigate("login")}
-                  className="flex whitespace-nowrap items-center gap-1.5 text-xs font-semibold bg-[#185e48] text-white px-3 py-1.5 rounded-lg hover:bg-[#154c3b] transition-colors"
+                  className="flex whitespace-nowrap items-center gap-1.5 text-[13px] font-semibold bg-[#185e48] text-white px-3 py-1.5 rounded-lg hover:bg-[#154c3b] transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -164,14 +164,14 @@ export default function Header({
             {isAdmin ? (
               <button
                 onClick={onLogout}
-                className="whitespace-nowrap text-xs text-red-600 hover:text-red-700 font-medium px-2.5 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-200"
+                className="whitespace-nowrap text-[13px] text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-red-200"
               >
                 Keluar
               </button>
             ) : (
               <button
                 onClick={() => onNavigate("login")}
-                className="flex whitespace-nowrap items-center gap-1.5 text-xs font-semibold bg-[#185e48] text-white px-2.5 py-1.5 rounded-lg hover:bg-[#154c3b] transition-colors"
+                className="flex whitespace-nowrap items-center gap-1.5 text-[13px] font-semibold bg-[#185e48] text-white px-3 py-1.5 rounded-lg hover:bg-[#154c3b] transition-colors"
               >
                 <svg
                   className="w-4 h-4"
@@ -191,12 +191,12 @@ export default function Header({
             )}
           </div>
         </div>
-        <nav className="xl:hidden -mx-4 px-4 pb-2 flex items-center gap-1.5 overflow-x-auto border-t border-green-50">
+        <nav className="xl:hidden -mx-4 px-4 pb-2 flex items-center gap-2.5 overflow-x-auto border-t border-green-50">
           {isAdmin ? (
             <>
               <button
                 onClick={() => onNavigate("admin")}
-                className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                   currentView === "admin" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                 }`}
               >
@@ -204,7 +204,7 @@ export default function Header({
               </button>
               <button
                 onClick={() => onNavigate("public")}
-                className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                   currentView === "public" || currentView === "detail" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                 }`}
               >
@@ -212,7 +212,7 @@ export default function Header({
               </button>
               <button
                 onClick={() => onNavigate("internal")}
-                className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                   currentView === "internal" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                 }`}
               >
@@ -220,7 +220,7 @@ export default function Header({
               </button>
               <button
                 onClick={() => onNavigate("verify")}
-                className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                   currentView === "verify" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                 }`}
               >
@@ -228,7 +228,7 @@ export default function Header({
               </button>
               <button
                 onClick={() => onNavigate("account")}
-                className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                   currentView === "account" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                 }`}
               >
@@ -237,7 +237,7 @@ export default function Header({
               {(user?.role === "administrator" || user?.role === "super_admin") && (
                 <button
                   onClick={() => onNavigate("users")}
-                  className={`shrink-0 whitespace-nowrap text-xs font-medium px-2.5 py-2 rounded-md ${
+                  className={`shrink-0 whitespace-nowrap text-[13px] font-medium px-3 py-2 rounded-md ${
                     currentView === "users" ? "bg-brand-100 text-brand-800" : "text-brand-700"
                   }`}
                 >
@@ -249,7 +249,7 @@ export default function Header({
             <>
               <button
                 onClick={() => onNavigate("verify")}
-                className={`shrink-0 whitespace-nowrap text-center text-xs font-semibold px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-center text-[13px] font-semibold px-3 py-2 rounded-md ${
                   currentView === "verify" ? "bg-brand-100 text-brand-800" : "text-brand-700 hover:bg-brand-50"
                 }`}
               >
@@ -257,7 +257,7 @@ export default function Header({
               </button>
               <button
                 onClick={() => onNavigate("public")}
-                className={`shrink-0 whitespace-nowrap text-center text-xs font-semibold px-2.5 py-2 rounded-md ${
+                className={`shrink-0 whitespace-nowrap text-center text-[13px] font-semibold px-3 py-2 rounded-md ${
                   currentView === "public" || currentView === "detail" ? "bg-brand-100 text-brand-800" : "text-brand-700 hover:bg-brand-50"
                 }`}
               >
