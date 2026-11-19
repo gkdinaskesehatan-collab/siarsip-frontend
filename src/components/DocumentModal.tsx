@@ -4,7 +4,7 @@ import type { OrganizationalUnit, UserAccount } from "../types"
 import type { DocumentFormData } from "../api"
 import Combobox from "./Combobox"
 
-const MAX_FILE_MB = 100
+const MAX_FILE_MB = 50
 const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
 
 interface DocumentModalProps {

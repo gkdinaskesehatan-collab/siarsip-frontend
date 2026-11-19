@@ -40,6 +40,10 @@ export default function AccountSettingsView({
 
   const [activities, setActivities] = useState<ActivityEntry[]>([])
 
+  const [activitiesLoading, setActivitiesLoading] = useState(false)
+
+  const [activitiesError, setActivitiesError] = useState("")
+
   const [currentPassword, setCurrentPassword] = useState("")
 
   const [newPassword, setNewPassword] = useState("")
@@ -76,11 +80,26 @@ export default function AccountSettingsView({
   useEffect(() => {
     if (section !== "activity") return
 
+    let active = true
+    setActivitiesLoading(true)
+    setActivitiesError("")
+
     fetchMyActivities()
 
-      .then(setActivities)
+      .then((items) => {
+        if (active) setActivities(items)
+      })
 
-      .catch((e: Error) => setError(e.message))
+      .catch((e: Error) => {
+        if (active) setActivitiesError(e.message)
+      })
+      .finally(() => {
+        if (active) setActivitiesLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
   }, [section])
 
   const saveProfile = async (event: React.FormEvent) => {
@@ -373,6 +392,11 @@ export default function AccountSettingsView({
                 <h2 className="mb-4 text-lg font-semibold text-[#0f2318]">
                   10 Aktivitas Terakhir
                 </h2>
+                {activitiesError && (
+                  <p role="alert" className="mb-3 text-sm text-red-600">
+                    Gagal memuat riwayat aktivitas: {activitiesError}
+                  </p>
+                )}
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[560px] text-left text-sm">
                     <thead className="border-b border-slate-100 text-xs uppercase text-slate-400">
@@ -383,7 +407,16 @@ export default function AccountSettingsView({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {activities.map((activity) => (
+                      {activitiesLoading ? (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="px-3 py-8 text-center text-slate-400"
+                          >
+                            Memuat riwayat aktivitas…
+                          </td>
+                        </tr>
+                      ) : activities.map((activity) => (
                         <tr key={activity.id}>
                           <td className="px-3 py-3 text-slate-700">
                             {activity.description}
@@ -398,7 +431,7 @@ export default function AccountSettingsView({
                           </td>
                         </tr>
                       ))}
-                      {activities.length === 0 && (
+                      {!activitiesLoading && activities.length === 0 && !activitiesError && (
                         <tr>
                           <td
                             colSpan={3}
