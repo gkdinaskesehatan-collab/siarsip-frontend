@@ -28,7 +28,7 @@ export default function VerifyDocumentView() {
       <section className="mx-auto max-w-xl rounded-2xl border border-green-100 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-2xl font-bold text-[#0f2318]">Verifikasi Keaslian Dokumen</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Unggah PDF untuk mencocokkan checksum SHA-256 dengan dokumen publik yang tercatat di SI-DHAKSI.
+          Unggah PDF untuk mencocokkan checksum SHA-256 dengan dokumen yang dapat diakses akun Anda. Dokumen internal dan rahasia memerlukan login serta hak akses yang sesuai.
         </p>
         <form onSubmit={submit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-slate-700">
