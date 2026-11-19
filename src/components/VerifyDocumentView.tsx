@@ -4,6 +4,7 @@ import { verifyDocument } from "../api"
 export default function VerifyDocumentView() {
   const documentId = new URLSearchParams(window.location.search).get("document_id")
   const [file, setFile] = useState<File | null>(null)
+  const [visibility, setVisibility] = useState<"" | "public" | "internal" | "secret">("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<Awaited<ReturnType<typeof verifyDocument>> | null>(null)
@@ -15,7 +16,7 @@ export default function VerifyDocumentView() {
     setError("")
     setResult(null)
     try {
-      setResult(await verifyDocument(file, documentId))
+      setResult(await verifyDocument(file, documentId, visibility || undefined))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Verifikasi gagal.")
     } finally {
@@ -31,6 +32,22 @@ export default function VerifyDocumentView() {
           Unggah PDF untuk mencocokkan checksum SHA-256 dengan dokumen yang dapat diakses akun Anda. Dokumen internal dan rahasia memerlukan login serta hak akses yang sesuai.
         </p>
         <form onSubmit={submit} className="mt-6 space-y-4">
+          <label className="block text-sm font-medium text-slate-700">
+            Jenis Dokumen
+            <select
+              value={visibility}
+              disabled={busy}
+              onChange={(event) =>
+                setVisibility(event.target.value as typeof visibility)
+              }
+              className="mt-2 block w-full rounded-lg border border-slate-200 bg-white p-3 text-sm"
+            >
+              <option value="">Semua jenis yang dapat diakses</option>
+              <option value="public">Publik</option>
+              <option value="internal">Internal</option>
+              <option value="secret">Rahasia</option>
+            </select>
+          </label>
           <label className="block text-sm font-medium text-slate-700">
             Berkas PDF
             <input

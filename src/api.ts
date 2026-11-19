@@ -645,7 +645,11 @@ export async function downloadDocumentFile(
   return { blob: await response.blob(), filename }
 }
 
-export async function verifyDocument(file: File, documentId?: string | null): Promise<{
+export async function verifyDocument(
+  file: File,
+  documentId?: string | null,
+  visibility?: Document["visibility"],
+): Promise<{
   verified: boolean
   sha256: string
   message: string
@@ -654,6 +658,7 @@ export async function verifyDocument(file: File, documentId?: string | null): Pr
   const form = new FormData()
   form.append("file", file)
   if (documentId) form.append("document_id", documentId)
+  if (visibility) form.append("visibility", visibility)
   return uploadRequest("/verify-document", form)
 }
 
