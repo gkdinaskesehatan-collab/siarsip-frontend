@@ -231,7 +231,7 @@ export default function DocumentDetail({
                       aria-pressed={searchOpen}
                       className={`text-xs font-semibold flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg ${
                         searchOpen
-                          ? 'bg-brand-100 text-brand-800'
+                          ? 'bg-brand-100 text-brand-800 shadow-sm ring-1 ring-brand-300'
                           : 'text-brand-700 hover:bg-brand-50 hover:text-brand-900'
                       }`}
                     >
@@ -242,7 +242,7 @@ export default function DocumentDetail({
                     </button>
                     <button
                       onClick={handleDownload}
-                      className="text-xs font-semibold text-brand-700 hover:text-brand-900 flex items-center gap-1 transition-colors px-2 py-1.5"
+                      className="text-xs font-semibold text-brand-700 hover:text-brand-900 hover:bg-brand-50 flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
