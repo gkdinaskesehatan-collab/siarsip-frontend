@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { getToken, verifyDocument } from "../api"
 
+const MAX_FILE_BYTES = 50 * 1024 * 1024
+
 export default function VerifyDocumentView() {
   const documentId = new URLSearchParams(window.location.search).get("document_id")
   const [file, setFile] = useState<File | null>(null)
@@ -14,6 +16,10 @@ export default function VerifyDocumentView() {
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!file || busy) return
+    if (file.size > MAX_FILE_BYTES) {
+      setError("Ukuran berkas melebihi batas maksimum 50 MB.")
+      return
+    }
     if (needsLogin) {
       setError("Silakan masuk terlebih dahulu untuk memverifikasi dokumen internal atau rahasia.")
       return
@@ -35,7 +41,7 @@ export default function VerifyDocumentView() {
       <section className="mx-auto max-w-xl rounded-2xl border border-green-100 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-2xl font-bold text-[#0f2318]">Verifikasi Keaslian Dokumen</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Unggah PDF untuk mencocokkan checksum SHA-256 dengan dokumen yang dapat diakses akun Anda. Dokumen internal dan rahasia memerlukan login serta hak akses yang sesuai.
+          Unggah berkas hingga 50 MB untuk mencocokkan checksum SHA-256 dengan dokumen yang dapat diakses akun Anda. Semua format didukung; dokumen internal dan rahasia memerlukan login serta hak akses yang sesuai.
         </p>
         <form onSubmit={submit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-slate-700">
@@ -64,15 +70,22 @@ export default function VerifyDocumentView() {
             </p>
           )}
           <label className="block text-sm font-medium text-slate-700">
-            Berkas PDF
+            Berkas
             <input
               type="file"
-              accept=".pdf,application/pdf"
               required
               disabled={busy}
               onChange={(event) => {
-                setFile(event.target.files?.[0] ?? null)
+                const selected = event.target.files?.[0] ?? null
                 setResult(null)
+                if (selected && selected.size > MAX_FILE_BYTES) {
+                  setFile(null)
+                  event.target.value = ""
+                  setError("Ukuran berkas melebihi batas maksimum 50 MB.")
+                  return
+                }
+                setFile(selected)
+                setError("")
               }}
               className="mt-2 block w-full rounded-lg border border-slate-200 p-3 text-sm"
             />
@@ -82,7 +95,7 @@ export default function VerifyDocumentView() {
             disabled={!file || busy || needsLogin}
             className="w-full rounded-xl bg-[#185e48] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {busy ? "Memverifikasi…" : "Verifikasi PDF"}
+            {busy ? "Memverifikasi…" : "Verifikasi Berkas"}
           </button>
         </form>
         {error && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}

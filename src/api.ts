@@ -22,7 +22,7 @@ export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
 }
 
-// Data dari form + file PDF yang dipilih (file boleh kosong saat edit)
+// Data dari form + file yang dipilih (file boleh kosong saat edit)
 
 export type DocumentFormData = Omit<Document, "id"> & {
   id?: string
@@ -562,7 +562,7 @@ export async function createDocument(
 
   onProgress?: (progress: number) => void,
 ): Promise<Document> {
-  if (!data.file) throw new Error("Berkas PDF wajib dipilih.")
+  if (!data.file) throw new Error("Berkas wajib dipilih.")
 
   const row = await uploadRequest<ApiDocument>(
     "/documents",

@@ -34,12 +34,11 @@ function FileDropZone({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const accept = (selected: File) => {
-    if (selected.type !== "application/pdf") {
-      alert("Berkas harus berformat PDF.")
-      return
-    }
     if (selected.size > MAX_FILE_BYTES) {
       alert(`Ukuran berkas melebihi batas maksimum ${MAX_FILE_MB} MB.`)
+      setFile(null)
+      onChange(null)
+      if (inputRef.current) inputRef.current.value = ""
       return
     }
     setFile(selected)
@@ -87,7 +86,6 @@ function FileDropZone({
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf"
         className="hidden"
         onChange={handleChange}
       />
@@ -159,11 +157,11 @@ function FileDropZone({
           </div>
           <p className="text-sm font-medium text-slate-600">
             {existingFile
-              ? "Ganti PDF (opsional)"
-              : "Seret & lepas PDF di sini"}
+              ? "Ganti berkas (opsional)"
+              : "Seret & lepas berkas di sini"}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
-            atau klik untuk memilih berkas · Maks. {MAX_FILE_MB} MB
+            Semua format berkas · Maks. {MAX_FILE_MB} MB
           </p>
           <p className="text-[10px] text-brand-600 font-medium mt-2 flex items-center justify-center gap-1">
             <svg
@@ -239,7 +237,7 @@ export default function DocumentModal({
       return
     }
     if (!isEdit && !file) {
-      setError("Berkas PDF wajib dipilih.")
+      setError("Berkas wajib dipilih.")
       return
     }
     if (file && file.size > MAX_FILE_BYTES) {
@@ -505,7 +503,7 @@ export default function DocumentModal({
           {/* File uploader */}
           <div>
             <label className={labelClass}>
-              Berkas PDF{" "}
+              Berkas{" "}
               {isEdit && (
                 <span className="text-slate-400 font-normal normal-case">
                   (opsional – kosongkan jika tidak ingin mengganti)
