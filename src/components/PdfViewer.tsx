@@ -3,6 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy, PageViewport, RenderTask } from 'pdfjs-dist';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { getToken } from '../api';
+import PreviewZoomControls from './PreviewZoomControls';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -198,6 +199,7 @@ export default function PdfViewer({
   const [numPages, setNumPages] = useState(0);
   const [baseSize, setBaseSize] = useState({ w: 595, h: 842 });
   const [containerW, setContainerW] = useState(0);
+  const [zoom, setZoom] = useState(100);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [loadedBytes, setLoadedBytes] = useState(0);
   const [loadProgress, setLoadProgress] = useState(0);
@@ -299,7 +301,7 @@ export default function PdfViewer({
     return () => ro.disconnect();
   }, [status]);
 
-  const scale = containerW > 0 ? Math.max((containerW - 32) / baseSize.w, 0.3) : 1;
+  const scale = (containerW > 0 ? Math.max((containerW - 32) / baseSize.w, 0.3) : 1) * zoom / 100;
   const placeholderW = baseSize.w * scale;
   const placeholderH = baseSize.h * scale;
 
@@ -530,6 +532,10 @@ export default function PdfViewer({
         </div>
       )}
 
+      <div className="flex items-center justify-end border-b border-slate-200 bg-white px-4 py-2">
+        <PreviewZoomControls zoom={zoom} onZoomChange={setZoom} />
+      </div>
+
       {/* Area baca */}
       {status === 'loading' && (
         <div className={`flex flex-col items-center justify-center gap-3 px-6 text-sm text-slate-500 ${className}`}>
@@ -567,7 +573,7 @@ export default function PdfViewer({
         </div>
       )}
       {status === 'ready' && pdf && (
-        <div ref={containerRef} className={`relative overflow-y-auto overflow-x-hidden py-4 ${className}`}>
+        <div ref={containerRef} className={`relative overflow-auto py-4 ${className}`}>
           {Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
             <PageView
               key={n}

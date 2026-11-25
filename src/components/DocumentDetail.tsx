@@ -3,6 +3,8 @@ import type { Document, DocumentVersion } from '../types';
 import CategoryBadge from './CategoryBadge';
 import VisibilityBadge from './VisibilityBadge';
 import PdfViewer from './PdfViewer';
+import PreviewZoomControls from './PreviewZoomControls';
+import WordViewer from './WordViewer';
 import { downloadDocumentFile, documentFileUrl, fetchDocumentVersions, getToken } from '../api';
 
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
@@ -11,6 +13,7 @@ const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp']);
 function DocumentImagePreview({ src, alt }: { src: string; alt: string }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [zoom, setZoom] = useState(100);
 
   useEffect(() => {
     let active = true;
@@ -51,7 +54,21 @@ function DocumentImagePreview({ src, alt }: { src: string; alt: string }) {
     return <p className="text-sm text-slate-500">Memuat pratinjau…</p>;
   }
 
-  return <img src={imageUrl} alt={alt} className="max-h-[75vh] max-w-full object-contain" />;
+  return (
+    <div className="flex w-full flex-col bg-slate-100">
+      <div className="flex items-center justify-end border-b border-slate-200 bg-white px-4 py-2">
+        <PreviewZoomControls zoom={zoom} onZoomChange={setZoom} />
+      </div>
+      <div className={`flex h-[75vh] min-h-[500px] overflow-auto p-4 ${zoom <= 100 ? 'justify-center' : 'justify-start'}`}>
+        <img
+          src={imageUrl}
+          alt={alt}
+          className="h-fit max-w-none object-contain"
+          style={{ width: `${zoom}%` }}
+        />
+      </div>
+    </div>
+  );
 }
 
 interface DocumentDetailProps {
@@ -101,6 +118,7 @@ export default function DocumentDetail({
   const totalBytes = Number.isFinite(fileSizeMb) ? fileSizeMb * 1024 * 1024 : undefined;
   const fileExtension = doc.originalFilename?.split('.').pop()?.toLowerCase() ?? 'pdf';
   const isPdf = fileExtension === 'pdf';
+  const isDocx = fileExtension === 'docx';
   const isImage = IMAGE_EXTENSIONS.has(fileExtension);
 
   const dateFormatted = new Date(doc.dateAdded).toLocaleDateString('id-ID', {
@@ -332,17 +350,23 @@ export default function DocumentDetail({
                   onSearchOpen={() => setSearchOpen(true)}
                   onSearchClose={() => setSearchOpen(false)}
                 />
+              ) : isDocx ? (
+                <WordViewer
+                  key={`${doc.id}-${fileVersion}`}
+                  src={previewSrc}
+                  className="h-[75vh] min-h-[500px]"
+                />
               ) : isImage ? (
-                <div className="flex min-h-[500px] items-center justify-center bg-slate-100 p-4">
-                  <DocumentImagePreview
-                    src={previewSrc}
-                    alt={`Pratinjau ${doc.originalFilename ?? doc.title}`}
-                  />
-                </div>
+                <DocumentImagePreview
+                  src={previewSrc}
+                  alt={`Pratinjau ${doc.originalFilename ?? doc.title}`}
+                />
               ) : (
                 <div className="flex min-h-[500px] flex-col items-center justify-center gap-3 p-6 text-center">
                   <p className="text-sm text-slate-600">
-                    Pratinjau tidak tersedia untuk format berkas ini
+                    {fileExtension === 'doc'
+                      ? 'Pratinjau langsung belum tersedia untuk format DOC lama. Ubah berkas ke DOCX atau unduh untuk melihatnya.'
+                      : 'Pratinjau tidak tersedia untuk format berkas ini'}
                   </p>
                   <button
                     type="button"
